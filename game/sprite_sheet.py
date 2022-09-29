@@ -1,12 +1,27 @@
+from enum import Enum
+import PIL
 import pygame
 
-
+CHESS_PIECES_SPRITES_ENUM = {
+   'white_king': 'content/128h/w_king_png_128px.png',
+   'white_queen': 'content/128h/w_queen_png_128px.png',
+   'white_bishop': 'content/128h/w_bishop_png_128px.png',
+   'white_knight': 'content/128h/w_knight_png_128px.png',
+   'white_rook': 'content/128h/w_rook_png_128px.png',
+   'white_pawn': 'content/128h/w_pawn_png_128px.png',
+   'black_king': 'content/128h/b_king_png_128px.png',
+   'black_queen': 'content/128h/b_queen_png_128px.png',
+   'black_bishop': 'content/128h/b_bishop_png_128px.png',
+   'black_knight': 'content/128h/b_knight_png_128px.png',
+   'black_rook': 'content/128h/b_rook_png_128px.png',
+   'black_pawn': 'content/128h/b_pawn_png_128px.png',
+}
+    
 class SpriteSheet:
-
     def __init__(self, filename):
         """Load the sheet."""
         try:
-            self.sheet = pygame.image.load(filename).convert()
+            self.sheet = pygame.image.load(filename).convert_alpha()
         except pygame.error as e:
             print(f"Unable to load spritesheet image: {filename}")
             raise SystemExit(e)
@@ -14,9 +29,8 @@ class SpriteSheet:
 
     def image_at(self, rectangle, colorkey = None):
         """Load a specific image from a specific rectangle."""
-        # Loads image from x, y, x+offset, y+offset.
         rect = pygame.Rect(rectangle)
-        image = pygame.Surface(rect.size).convert()
+        image = pygame.Surface(rect.size).convert_alpha()
         image.blit(self.sheet, (0, 0), rect)
         if colorkey is not None:
             if colorkey is -1:

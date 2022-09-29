@@ -1,15 +1,32 @@
 import sys
 import pygame
+import os
 
 from sprite_sheet import SpriteSheet
+from pygame.locals import (
+    MOUSEBUTTONUP,
+    K_ESCAPE,
+    KEYDOWN,
+    QUIT,
+)
+
+from constants import CHESS_PIECES_STARTING_POSITIONS
+from sprite_sheet import CHESS_PIECES_SPRITES_ENUM
+
+def get_starting_position(color, name):
+    return CHESS_PIECES_STARTING_POSITIONS[str(color) + '_' + str(name)]
+
+def get_piece_image(color, name):
+    return CHESS_PIECES_SPRITES_ENUM[str(color) + '_' + str(name)]
+
 
 class Settings:
-
     def __init__(self):
         self.screen_width, self.screen_height = 1200, 800
         self.bg_color = (225, 225, 225)
+        self.black_square_color = (0,0,0)
 
-class ChessSet:
+class ChessGame:
     """Overall class to manage game assets and behavior."""
 
     def __init__(self):
@@ -23,6 +40,8 @@ class ChessSet:
 
         self.chess_set = ChessBoard(self)
 
+        self.board = [ [(i, j) for i in range(0,8)] for j in range(0,8) ]
+
     def run_game(self):
         """Start the main loop for the game."""
         while True:
@@ -31,32 +50,43 @@ class ChessSet:
 
     def _check_events(self):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == QUIT:
                 sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
+            elif event.type == KEYDOWN:
+                if event.key == pygame.K_q or event.key == K_ESCAPE:
                     sys.exit()
+            elif event.type == MOUSEBUTTONUP:
+                print(pygame.mouse.get_pos())
 
     def _update_screen(self):
         self.screen.fill(self.settings.bg_color)
 
-        # Draw a row of black pieces.
-        for index, piece in enumerate(self.chess_set.pieces[:6]):
-            piece.x = index * 100
+        # Draw chess board
+        for row in self.board:
+            for square in row:
+                surf = pygame.Surface((100,100))
+        
+                if square[0] % 2 == 0 and square[1] % 2 != 0:
+                    surf.fill((0, 0, 0))
+                elif square[1] % 2 == 0 and square[0] % 2 != 0:
+                    surf.fill((0, 0, 0))
+                else:
+                    surf.fill((255, 255, 255))
+        
+                rect = surf.get_rect()
+                self.screen.blit(surf, (square[0] * 100, square[1] * 100))
+
+        # Draw all pieces
+        for piece in self.chess_set.pieces:
             piece.blitme()
 
-        # Draw a row of white pieces.
-        for index, piece in enumerate(self.chess_set.pieces[6:]):
-            piece.x = index * 100
-            piece.y = 100
-            piece.blitme()
-
-        pygame.display.flip()
+        pygame.display.update()
 
 class ChessBoard:
-    """Represents a set of chess pieces.
+    ''' 
+    Represents a specific board configuration.
     Each piece is an object of the Piece class.
-    """
+    '''
 
     def __init__(self, chess_game):
         """Initialize attributes to represent the overall set of pieces."""
@@ -66,13 +96,6 @@ class ChessBoard:
         self._load_pieces()
 
     def _load_pieces(self):
-        filename = 'chess_pieces.bmp'
-        piece_ss = SpriteSheet(filename)
-
-        # Load all piece images.
-        piece_images = piece_ss.load_grid_images(2, 6, x_margin=64,
-                x_padding=72, y_margin=68, y_padding=48)
-
         # Create a Piece for each image.
         colors = ['black', 'white']
         names = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn']
@@ -80,36 +103,48 @@ class ChessBoard:
         piece_num = 0
         for color in colors:
             for name in names:
-                piece = Piece(self.chess_game)
-                piece.name = name
-                piece.color = color
-                piece.image = piece_images[piece_num]
-                self.pieces.append(piece)
+                starting_positions = get_starting_position(color, name)
+                print(starting_positions)
+                for starting_position in starting_positions:
+                    piece = Piece(self.chess_game, color=color, name=name, position=starting_position)
+                    piece.name = name
+                    piece.color = color
+                    self.pieces.append(piece)
 
-                piece_num += 1
+                    piece_num += 1
 
 class Piece:
     """Represents a chess piece."""
 
-    def __init__(self, chess_game):
-        """Initialize attributes to represent a ches piece."""
-        self.image = None
-        self.name = ''
-        self.color = ''
+    def __init__(self, chess_game, name, color, position):
+        """Initialize attributes to represent a chess piece."""
+        self.image = self.image_from_name(color, name)
+        self.name = name
+        self.color = color
+        self.position = position
 
         self.screen = chess_game.screen
 
-        # Start each piece off at the top left corner.
-        self.x, self.y = 0.0, 0.0
+        self.x, self.y = self.coordinates_from_position(position)
+
+    def coordinates_from_position(self, position):
+        return (55 + 100 * position[1], 50 + 100 * position[0])
+
+    def image_from_name(self, color, name):
+        sprite_sheet = SpriteSheet(get_piece_image(color, name))
+        image = sprite_sheet.image_at([0,0,142,128])
+
+        return pygame.transform.smoothscale(image, (80, 80))
+
 
     def blitme(self):
         """Draw the piece at its current location."""
         self.rect = self.image.get_rect()
-        self.rect.topleft = self.x, self.y
+        self.rect.center = self.x, self.y
         self.screen.blit(self.image, self.rect)
 
 if __name__ == '__main__':
-    chess_game = ChessSet()
+    chess_game = ChessGame()
     chess_game.run_game()
 
 # from pygame.locals import (
