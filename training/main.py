@@ -7,10 +7,8 @@ import numpy
 import random
 
 import io
-#import cairosvg
 
-from PyQt5.QtSvg import QSvgWidget
-from PyQt5.QtWidgets import QApplication, QWidget
+from game.board import ChessGame
 
 def random_board(max_depth = 200):
     board = chess.Board()
@@ -33,23 +31,21 @@ def stockfish_analysis(board, depth):
         return score
 
 def render_board(svg):
-    # svg = cairosvg.svg2svg(svg, dpi = (DPI / scale))
-    # bytes = cairosvg.svg2png(svg)
-    # byte_io = io.BytesIO(bytes)
-    # return pygame.image.load(byte_io)
-
-    widgetSvg = QSvgWidget()
-    widgetSvg.setGeometry(10, 10, 1080, 1080)
-    widgetSvg.load(svg)
+    print("WORK IN PROGRESS")
 
 
 
 if __name__ == '__main__':
     board = random_board()
+    listed_board = [[s.strip() for s in line.split(' ') if s] for line in str(board).split('\n') if line]
     print(board)
+    print(listed_board)
     print('________')
     print('SCORE:  ')
     print(stockfish_analysis(board,10))
+
+    chess_game = ChessGame(listed_board)
+    chess_game.run_game()
 
     # app = QApplication([])
     # render_board(chess.svg.board(board, size=350))

@@ -1,6 +1,7 @@
 import sys
 import pygame
 import os
+from game.constants import CHESS_PIECES_ENUM
 
 from sprite_sheet import SpriteSheet
 from pygame.locals import (
@@ -29,7 +30,7 @@ class Settings:
 class ChessGame:
     """Overall class to manage game assets and behavior."""
 
-    def __init__(self):
+    def __init__(self, preset_board = []):
         """Initialize the game, and create resources."""
         pygame.init()
         self.settings = Settings()
@@ -38,7 +39,10 @@ class ChessGame:
                 (self.settings.screen_width, self.settings.screen_height))
         pygame.display.set_caption("Chess")
 
-        self.chess_set = ChessBoard(self)
+        if preset_board:
+            self.chess_set = ChessBoard(self, preset_board)
+        else:
+            self.chess_set = ChessBoard(self)
 
         self.board = [ [(i, j) for i in range(0,8)] for j in range(0,8) ]
 
@@ -88,14 +92,35 @@ class ChessBoard:
     Each piece is an object of the Piece class.
     '''
 
-    def __init__(self, chess_game):
+    def __init__(self, chess_game, preset_board = []):
         """Initialize attributes to represent the overall set of pieces."""
 
         self.chess_game = chess_game
         self.pieces = []
-        self._load_pieces()
+        if preset_board:
+            self.load_new_board()
+        else:
+            self.load_starting_pieces()
+    
+    def load_new_board(self, board):
+        piece_num = 0
+        for row in range(0, len(board)):
+            for column in range(0, len(row)):
+                character = board[row][column]
+                if character == '.':
+                    pass
+                name = CHESS_PIECES_ENUM(character).name
+                color = name.split('_')[0]
+                position = (row, column)
 
-    def _load_pieces(self):
+                piece = Piece(self.chess_game, color=color, name=name, position=position)
+                piece.name = name
+                piece.color = color
+                self.pieces.append(piece)
+
+                piece_num += 1
+
+    def load_starting_pieces(self):
         # Create a Piece for each image.
         colors = ['black', 'white']
         names = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn']
