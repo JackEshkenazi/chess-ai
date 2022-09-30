@@ -1,7 +1,7 @@
 import sys
 import pygame
 import os
-from game.constants import CHESS_PIECES_ENUM
+from constants import CHESS_PIECES_ENUM
 
 from sprite_sheet import SpriteSheet
 from pygame.locals import (
@@ -98,7 +98,7 @@ class ChessBoard:
         self.chess_game = chess_game
         self.pieces = []
         if preset_board:
-            self.load_new_board()
+            self.load_new_board(preset_board)
         else:
             self.load_starting_pieces()
     

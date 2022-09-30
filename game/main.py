@@ -8,7 +8,7 @@ import random
 
 import io
 
-from game.board import ChessGame
+from board import ChessGame
 
 def random_board(max_depth = 200):
     board = chess.Board()
